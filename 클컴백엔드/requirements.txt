@@ -2,9 +2,13 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
+pydantic[email]
 python-dotenv
 apscheduler
 alembic
 python-multipart
 httpx
 bcrypt==4.3.0
+requests
+PyJWT
+websockets
