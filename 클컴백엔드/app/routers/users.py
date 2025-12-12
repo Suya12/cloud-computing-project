@@ -26,7 +26,19 @@ def create_user_record(db: Session, email: str, name: str):
 # 이메일로 유저 조회 API
 @router.get("/by_email/{email}")
 def get_user_by_email(email: str, db: Session = Depends(get_db)):
-    return find_user_by_email(db, email)
+    user = find_user_by_email(db, email)
+    if not user:
+        return None
+    return {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "credit": user.credit,
+        "address": user.address,
+        "detailed_address": user.detailed_address,
+        "latitude": user.latitude,
+        "longitude": user.longitude
+    }
 
 # 구글 로그인
 @router.post("/google-login")

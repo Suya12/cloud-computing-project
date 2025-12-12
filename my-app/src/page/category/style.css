@@ -44,44 +44,86 @@
     background: #e5e7eb;
 }
 
+/* 상단 정보 영역 (주소 + 크레딧) */
+.info-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.address-section {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.address-section:hover {
+    background: #fde68a;
+}
+
 .credit-section {
+    flex: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #f0f9ff;
     border: 1px solid #bae6fd;
     border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
+    padding: 12px;
 }
 
-.credit-info {
+.section-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    min-width: 0;
 }
 
-.credit-label {
-    font-size: 12px;
+.section-label {
+    font-size: 11px;
     color: #666;
 }
 
+.address-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #92400e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.edit-icon {
+    font-size: 16px;
+    color: #92400e;
+    flex-shrink: 0;
+}
+
 .credit-amount {
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 700;
     color: #0369a1;
 }
 
 .credit-btn {
-    padding: 10px 20px;
+    padding: 8px 14px;
     background: #0ea5e9;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: 0.15s;
+    flex-shrink: 0;
 }
 
 .credit-btn:hover {
@@ -90,6 +132,119 @@
 
 .credit-btn:active {
     background: #0369a1;
+}
+
+/* 주소 설정 모달 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 380px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.modal-map {
+    width: 100%;
+    height: 200px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 12px;
+}
+
+.modal-search-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.modal-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.modal-search-btn {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.modal-search-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.modal-cancel-btn {
+    flex: 1;
+    padding: 14px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-cancel-btn:hover {
+    background: #e5e7eb;
+}
+
+.modal-save-btn {
+    flex: 1;
+    padding: 14px;
+    background: #000;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-save-btn:hover {
+    background: #1f2937;
 }
 
 .info-text {

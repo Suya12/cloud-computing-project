@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { usersAPI } from '../api';
 
 const AuthContext = createContext(null);
 
@@ -6,51 +7,61 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // URL에서 토큰 확인 (Google OAuth 콜백 후)
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = urlParams.get('token');
-
-    if (tokenFromUrl) {
-      localStorage.setItem('token', tokenFromUrl);
-      // URL에서 토큰 파라미터 제거
-      window.history.replaceState({}, document.title, window.location.pathname);
+  // 사용자 정보 API로 조회
+  const fetchUserInfo = async (email) => {
+    try {
+      const response = await usersAPI.getUserByEmail(email);
+      if (response.data) {
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user info:', error);
     }
+  };
 
-    // 로컬 스토리지에서 토큰 확인
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        // JWT 디코딩 (base64)
-        const payload = JSON.parse(atob(token.split('.')[1]));
+  useEffect(() => {
+    const initAuth = async () => {
+      // URL에서 토큰 확인 (Google OAuth 콜백 후)
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get('token');
 
-        // 토큰 만료 확인
-        if (payload.exp * 1000 > Date.now()) {
-          setUser({
-            email: payload.email,
-            name: payload.name,
-            id: payload.user_id,
-          });
-        } else {
-          // 토큰 만료됨
+      if (tokenFromUrl) {
+        localStorage.setItem('token', tokenFromUrl);
+        // URL에서 토큰 파라미터 제거
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // 로컬 스토리지에서 토큰 확인
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // JWT 디코딩 (base64)
+          const payload = JSON.parse(atob(token.split('.')[1]));
+
+          // 토큰 만료 확인
+          if (payload.exp * 1000 > Date.now()) {
+            // API로 전체 사용자 정보 조회
+            await fetchUserInfo(payload.email);
+          } else {
+            // 토큰 만료됨
+            localStorage.removeItem('token');
+          }
+        } catch (e) {
+          console.error('Invalid token:', e);
           localStorage.removeItem('token');
         }
-      } catch (e) {
-        console.error('Invalid token:', e);
-        localStorage.removeItem('token');
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  const login = (token) => {
+  const login = async (token) => {
     localStorage.setItem('token', token);
     const payload = JSON.parse(atob(token.split('.')[1]));
-    setUser({
-      email: payload.email,
-      name: payload.name,
-      id: payload.user_id,
-    });
+    // API로 전체 사용자 정보 조회
+    await fetchUserInfo(payload.email);
   };
 
   const logout = () => {
@@ -58,8 +69,15 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // 사용자 정보 새로고침 (주소 저장 후 호출)
+  const refreshUser = async () => {
+    if (user?.email) {
+      await fetchUserInfo(user.email);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

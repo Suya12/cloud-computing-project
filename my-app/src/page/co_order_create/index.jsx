@@ -42,6 +42,17 @@ export default function Co_order_create() {
         }
     };
 
+    // 사용자 주소 기본값 설정
+    useEffect(() => {
+        if (user?.address) {
+            setAddress(user.address);
+        }
+        if (user?.latitude && user?.longitude) {
+            setLat(user.latitude);
+            setLng(user.longitude);
+        }
+    }, [user]);
+
     // 가게/메뉴 데이터 로드
     useEffect(() => {
         const loadData = async () => {
@@ -85,8 +96,12 @@ export default function Co_order_create() {
                     return false;
                 }
 
+                // 사용자 저장 좌표가 있으면 그 위치로, 없으면 전주시 기본값
+                const centerLat = user?.latitude || 35.8468;
+                const centerLng = user?.longitude || 127.1297;
+
                 const options = {
-                    center: new window.kakao.maps.LatLng(35.8468, 127.1297), // 전주시
+                    center: new window.kakao.maps.LatLng(centerLat, centerLng),
                     level: 3
                 };
 
@@ -95,6 +110,14 @@ export default function Co_order_create() {
 
                 // Geocoder 초기화
                 geocoderRef.current = new window.kakao.maps.services.Geocoder();
+
+                // 사용자 저장 위치가 있으면 마커 표시
+                if (user?.latitude && user?.longitude) {
+                    const position = new window.kakao.maps.LatLng(user.latitude, user.longitude);
+                    const marker = new window.kakao.maps.Marker({ position });
+                    marker.setMap(map);
+                    markerRef.current = marker;
+                }
 
                 // 지도 클릭 이벤트
                 window.kakao.maps.event.addListener(map, 'click', (mouseEvent) => {

@@ -28,6 +28,8 @@ export const usersAPI = {
   getUserByEmail: (email) => api.get(`/users/by_email/${email}`),
   addCredit: (userId, amount) => api.post(`/users/credit/add/${userId}?amount=${amount}`),
   getCredit: (userId) => api.get(`/users/credit/get/${userId}`),
+  updateAddress: (userId, address, lat, lng, detailedAddress = null) =>
+    api.put(`/users/${userId}/address?address=${encodeURIComponent(address)}&lat=${lat}&lng=${lng}${detailedAddress ? `&detailed_address=${encodeURIComponent(detailedAddress)}` : ''}`),
 };
 
 // Stores API
