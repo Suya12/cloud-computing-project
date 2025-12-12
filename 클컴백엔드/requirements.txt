@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-dotenv
+apscheduler
+alembic
+python-multipart
+httpx
+bcrypt==4.3.0

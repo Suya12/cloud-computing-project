@@ -1,0 +1,22 @@
+cd OneDrive\바탕 화면\과제\3학년 2학기\클라우드컴퓨팅\팀프로젝트\project\backend
+서버 가동 : uvicorn app.main:app --reload
+더미데이터 생성 : python -m app.create_dummy_data
+
+데이터베이스
+sqlite3 joint_order.db
+.tables
+SELECT * FROM requests;
+SELECT * FROM users;
+SELECT * FROM usage_history;
+
+split_type은 together 또는 separate
+menu_prices 내의 항목은 반드시 숫자로 바꾸기(정수로 변환 가능해야 함)
+ > addition...1/2/3에서 1/2/3만 남기기
+ menu_prices는 선택된 메뉴의 금액
+
+match에서 request body 형식은 아래와 같음
+{
+  "matched_menu_price": 가격(separate에서만 지정)
+}
+separate에서 matched_menu_price와 menu_price의 합이 minimum_price보다 작으면 오류
+together에서 menu_price의 합이 minimum_price보다 작으면 오류

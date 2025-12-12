@@ -1,0 +1,121 @@
+/* 모바일 박스 */
+.order-box {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    background: #f8f8f8;
+    padding: 20px;
+    border-radius: 16px;
+    overflow-y: auto;
+}
+
+/* 타이틀 */
+.order-box .title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 정보 박스 */
+.info-box {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+/* 행(가게/메뉴 라인) */
+.info-box .row,
+.row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    
+}
+
+.info-box .row:last-child {
+    border-bottom: none;
+}
+
+.time-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.arrival-time {
+    display: block;
+    font-size: 36px;
+    font-weight: bold;
+    color: #1a2744;
+}
+
+.arrival-label {
+    display: block;
+    font-size: 16px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.home-btn {
+    width: 100%;
+    padding: 16px;
+    background: #1a2744;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s;
+    margin-top: 20px;
+}
+
+.home-btn:hover {
+    background: #243352;
+}
+
+.home-btn:active {
+    background: #0f1a2e;
+}
+
+/* 매칭 대기 중 스타일 */
+.waiting-section {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.waiting-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.waiting-text {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.waiting-subtext {
+    font-size: 14px;
+    opacity: 0.9;
+}
