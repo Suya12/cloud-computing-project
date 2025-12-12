@@ -64,6 +64,10 @@ export default function Store_select() {
                             >
                                 <div className="store-info">
                                     <div className="store-name">{store.name}</div>
+                                    <div className="store-location">
+                                        <span className="location-icon">📍</span>
+                                        {store.location || '위치 정보 없음'}
+                                    </div>
                                     <div className="store-meta">
                                         최소주문 {store.minimum_price?.toLocaleString()}원 · 배달팁 {store.delivery_tip?.toLocaleString()}원
                                     </div>

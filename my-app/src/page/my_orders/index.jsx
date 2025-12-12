@@ -9,6 +9,7 @@ export default function MyOrders() {
     const { user, loading } = useAuth();
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
+    const [now, setNow] = useState(new Date());
 
     useEffect(() => {
         if (!loading && !user) {
@@ -30,6 +31,31 @@ export default function MyOrders() {
         };
         fetchOrders();
     }, [user]);
+
+    // 1초마다 현재 시간 업데이트 (남은 시간 표시용)
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setNow(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // 남은 시간 계산
+    const getRemainingTime = (expiresAt) => {
+        if (!expiresAt) return null;
+        const expireDate = new Date(expiresAt);
+        const diff = expireDate - now;
+
+        if (diff <= 0) return { text: '만료됨', expired: true };
+
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+
+        if (minutes > 0) {
+            return { text: `${minutes}분 ${seconds}초`, expired: false };
+        }
+        return { text: `${seconds}초`, expired: false, urgent: true };
+    };
 
     const handleBack = () => {
         navigate('/category');
@@ -83,49 +109,60 @@ export default function MyOrders() {
                 </div>
             ) : (
                 <div className="orders-list">
-                    {orders.map(order => (
-                        <div
-                            key={order.id}
-                            className="order-card"
-                            onClick={() => handleOrderClick(order.id)}
-                        >
-                            <div className="order-header">
-                                <span className="store-name">{order.store_name}</span>
-                                <span className="order-category">{order.store_category}</span>
-                            </div>
-                            <div className="order-details">
-                                <div className="detail-row">
-                                    <span className="label">배달 위치</span>
-                                    <span className="value">{order.delivery_location}</span>
+                    {orders.map(order => {
+                        const remaining = getRemainingTime(order.expires_at);
+                        return (
+                            <div
+                                key={order.id}
+                                className={`order-card ${remaining?.expired ? 'expired' : ''}`}
+                                onClick={() => handleOrderClick(order.id)}
+                            >
+                                <div className="order-header">
+                                    <span className="store-name">{order.store_name}</span>
+                                    <span className="order-category">{order.store_category}</span>
                                 </div>
-                                <div className="detail-row">
-                                    <span className="label">결제 금액</span>
-                                    <span className="value">{order.owner_paid_amount?.toLocaleString()}원</span>
-                                </div>
-                                <div className="detail-row">
-                                    <span className="label">주문 방식</span>
-                                    <span className="value">{order.split_type ? '나눠먹기' : '각자먹기'}</span>
-                                </div>
-                                <div className="detail-row">
-                                    <span className="label">주문 시간</span>
-                                    <span className="value">{formatDate(order.created_at)}</span>
-                                </div>
-                            </div>
-                            <div className="order-footer">
-                                {order.creator_id === user.id && (
-                                    <span className="creator-badge">내가 생성</span>
+                                {remaining && (
+                                    <div className={`remaining-time ${remaining.expired ? 'expired' : ''} ${remaining.urgent ? 'urgent' : ''}`}>
+                                        <span className="time-icon">⏱</span>
+                                        <span className="time-text">
+                                            {remaining.expired ? '매칭 시간 만료' : `남은 시간: ${remaining.text}`}
+                                        </span>
+                                    </div>
                                 )}
-                                {order.creator_id === user.id && (
-                                    <button
-                                        className="delete-btn"
-                                        onClick={(e) => handleDeleteOrder(e, order.id)}
-                                    >
-                                        삭제
-                                    </button>
-                                )}
+                                <div className="order-details">
+                                    <div className="detail-row">
+                                        <span className="label">배달 위치</span>
+                                        <span className="value">{order.delivery_location}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="label">결제 금액</span>
+                                        <span className="value">{order.owner_paid_amount?.toLocaleString()}원</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="label">주문 방식</span>
+                                        <span className="value">{order.split_type ? '나눠먹기' : '각자먹기'}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="label">주문 시간</span>
+                                        <span className="value">{formatDate(order.created_at)}</span>
+                                    </div>
+                                </div>
+                                <div className="order-footer">
+                                    {order.creator_id === user.id && (
+                                        <span className="creator-badge">내가 생성</span>
+                                    )}
+                                    {order.creator_id === user.id && (
+                                        <button
+                                            className="delete-btn"
+                                            onClick={(e) => handleDeleteOrder(e, order.id)}
+                                        >
+                                            삭제
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

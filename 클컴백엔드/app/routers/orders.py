@@ -220,8 +220,26 @@ def delete_order(order_id: int, user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/my/{user_id}")
 def get_my_orders(user_id: int, db: Session = Depends(get_db)):
-    query = db.query(models.Order).filter(
+    orders = db.query(models.Order).filter(
         ((models.Order.creator_id == user_id) | (models.Order.owner_id == user_id)) &
         (models.Order.status == "pending")
-    )
-    return query.all()
+    ).all()
+
+    result = []
+    for order in orders:
+        store = db.query(models.Store).filter(models.Store.id == order.store_id).first()
+        result.append({
+            "id": order.id,
+            "creator_id": order.creator_id,
+            "owner_id": order.owner_id,
+            "store_id": order.store_id,
+            "store_name": store.name if store else "Unknown",
+            "store_category": store.category if store else "Unknown",
+            "delivery_location": order.delivery_location,
+            "split_type": order.split_type,
+            "owner_paid_amount": order.owner_paid_amount,
+            "created_at": order.created_at.isoformat() if order.created_at else None,
+            "expires_at": order.expires_at.isoformat() if order.expires_at else None,
+            "status": order.status
+        })
+    return result

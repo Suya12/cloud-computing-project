@@ -111,6 +111,12 @@
     cursor: not-allowed;
 }
 
+/* 상세 위치 입력 */
+.detailed-location-input {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
 /* 라디오 버튼 */
 .radio-group {
     display: flex;

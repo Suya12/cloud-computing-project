@@ -48,10 +48,11 @@ export const cartAPI = {
 
 // Orders API
 export const ordersAPI = {
-  createOrder: (creatorId, deliveryLocation, splitType, lat = null, lng = null) =>
+  createOrder: (creatorId, deliveryLocation, splitType, lat = null, lng = null, detailedLocation = null) =>
     api.post('/orders/', {
       creator_id: creatorId,
       delivery_location: deliveryLocation,
+      detailed_location: detailedLocation,
       split_type: splitType,
       delivery_lat: lat,
       delivery_lng: lng

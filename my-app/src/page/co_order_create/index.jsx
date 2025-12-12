@@ -19,6 +19,7 @@ export default function Co_order_create() {
 
     // 폼 상태
     const [address, setAddress] = useState('');
+    const [detailedLocation, setDetailedLocation] = useState('');
     const [lat, setLat] = useState(null);
     const [lng, setLng] = useState(null);
     const [eatType, setEatType] = useState('share');
@@ -276,7 +277,7 @@ export default function Co_order_create() {
 
             // 주문 생성
             const splitType = eatType === 'share';
-            const res = await ordersAPI.createOrder(user.id, address, splitType, lat, lng);
+            const res = await ordersAPI.createOrder(user.id, address, splitType, lat, lng, detailedLocation);
 
             setCartItems([]);
             setSelectedMenus([]);
@@ -350,6 +351,13 @@ export default function Co_order_create() {
                     {mapLoaded ? '검색' : '로딩...'}
                 </button>
             </div>
+            <input
+                type="text"
+                className="input-field detailed-location-input"
+                value={detailedLocation}
+                onChange={(e) => setDetailedLocation(e.target.value)}
+                placeholder="상세 위치 (예: 정문 앞, 경비실 옆) 입력"
+            />
 
             {/* 먹기 방식 */}
             <label className="label">함께 먹기 방식</label>

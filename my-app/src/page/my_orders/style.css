@@ -156,3 +156,44 @@
 .delete-btn:hover {
     background: #fecaca;
 }
+
+/* 남은 시간 표시 */
+.remaining-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #e0f2fe;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.remaining-time .time-icon {
+    font-size: 14px;
+}
+
+.remaining-time .time-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0369a1;
+}
+
+.remaining-time.urgent {
+    background: #fef3c7;
+}
+
+.remaining-time.urgent .time-text {
+    color: #d97706;
+}
+
+.remaining-time.expired {
+    background: #fee2e2;
+}
+
+.remaining-time.expired .time-text {
+    color: #dc2626;
+}
+
+.order-card.expired {
+    opacity: 0.7;
+}
