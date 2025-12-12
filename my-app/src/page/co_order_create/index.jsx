@@ -29,7 +29,6 @@ export default function Co_order_create() {
     const mapInstanceRef = useRef(null);
     const markerRef = useRef(null);
     const geocoderRef = useRef(null);
-    const placesRef = useRef(null);
     const [mapLoaded, setMapLoaded] = useState(false);
 
     // 장바구니 조회
@@ -76,6 +75,16 @@ export default function Co_order_create() {
         const initializeMap = () => {
             try {
                 const container = mapContainerRef.current;
+                if (!container) {
+                    console.error('지도 컨테이너를 찾을 수 없습니다.');
+                    return false;
+                }
+
+                // Map 생성자가 있는지 확인
+                if (!window.kakao?.maps?.Map) {
+                    return false;
+                }
+
                 const options = {
                     center: new window.kakao.maps.LatLng(35.8468, 127.1297), // 전주시
                     level: 3
@@ -84,9 +93,8 @@ export default function Co_order_create() {
                 const map = new window.kakao.maps.Map(container, options);
                 mapInstanceRef.current = map;
 
-                // Geocoder, Places 초기화
+                // Geocoder 초기화
                 geocoderRef.current = new window.kakao.maps.services.Geocoder();
-                placesRef.current = new window.kakao.maps.services.Places();
 
                 // 지도 클릭 이벤트
                 window.kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
@@ -106,18 +114,51 @@ export default function Co_order_create() {
                 });
 
                 setMapLoaded(true);
-                console.log('카카오맵 초기화 완료');
+                return true;
             } catch (err) {
                 console.error('카카오맵 초기화 실패:', err);
+                return false;
             }
         };
 
-        // 카카오맵 SDK 로드 확인
-        if (window.kakao && window.kakao.maps) {
-            window.kakao.maps.load(initializeMap);
-        } else {
-            console.error('카카오맵 SDK가 로드되지 않았습니다.');
-        }
+        // SDK가 완전히 로드될 때까지 폴링
+        let attempts = 0;
+        const maxAttempts = 50; // 최대 5초 대기
+
+        const pollForKakaoMaps = () => {
+            attempts++;
+
+            // kakao.maps.Map이 존재하면 초기화 시도
+            if (window.kakao?.maps?.Map) {
+                if (initializeMap()) {
+                    return; // 성공
+                }
+            }
+
+            // kakao.maps.load 함수가 있으면 호출 시도
+            if (window.kakao?.maps?.load && typeof window.kakao.maps.load === 'function') {
+                try {
+                    window.kakao.maps.load(() => {
+                        if (!mapInstanceRef.current) {
+                            initializeMap();
+                        }
+                    });
+                } catch (e) {
+                    // load 이미 호출됨, 무시
+                }
+            }
+
+            // 최대 시도 횟수 미만이면 계속 폴링
+            if (attempts < maxAttempts && !mapInstanceRef.current) {
+                setTimeout(pollForKakaoMaps, 100);
+            } else if (attempts >= maxAttempts && !mapInstanceRef.current) {
+                console.error('카카오맵 SDK 로딩 타임아웃');
+            }
+        };
+
+        // 100ms 후 폴링 시작
+        const timer = setTimeout(pollForKakaoMaps, 100);
+        return () => clearTimeout(timer);
     }, [loading]);
 
     // 마커 배치 함수
@@ -163,16 +204,7 @@ export default function Co_order_create() {
                 placeMarker(y, x);
                 setAddress(result[0].address_name);
             } else {
-                // 장소명 검색 시도
-                placesRef.current.keywordSearch(address, (places, placeStatus) => {
-                    if (placeStatus === window.kakao.maps.services.Status.OK && places.length > 0) {
-                        const place = places[0];
-                        placeMarker(parseFloat(place.y), parseFloat(place.x));
-                        setAddress(place.address_name || place.place_name);
-                    } else {
-                        alert('검색 결과가 없습니다.');
-                    }
-                });
+                alert('검색 결과가 없습니다. 정확한 주소를 입력해주세요.');
             }
         });
     };
