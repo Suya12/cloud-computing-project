@@ -53,10 +53,10 @@ def google_login(user: UserGoogleLogin, db: Session = Depends(get_db)):
     }
 
 @router.post("/credit/add/{user_id}")
-def add_credit(user_id: str, amount: int, db: Session = Depends(get_db)):
+def add_credit(user_id: int, amount: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
-        return {"error": "User not found"}
+        raise HTTPException(status_code=404, detail="User not found")
 
     user.credit += amount
     db.commit()
@@ -66,9 +66,41 @@ def add_credit(user_id: str, amount: int, db: Session = Depends(get_db)):
 
 
 @router.get("/credit/get/{user_id}")
-def get_credit(user_id: str, db: Session = Depends(get_db)):
+def get_credit(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
-        return {"error": "User not found"}
+        raise HTTPException(status_code=404, detail="User not found")
 
     return {"id": user.id, "credit": user.credit}
+
+
+@router.put("/{user_id}/address")
+def update_user_address(
+    user_id: int,
+    address: str,
+    lat: float,
+    lng: float,
+    detailed_address: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """사용자 배달 주소를 업데이트합니다."""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.address = address
+    user.detailed_address = detailed_address
+    user.latitude = lat
+    user.longitude = lng
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "success": True,
+        "user_id": user.id,
+        "address": address,
+        "detailed_address": detailed_address,
+        "latitude": lat,
+        "longitude": lng
+    }

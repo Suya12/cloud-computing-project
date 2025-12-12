@@ -127,28 +127,33 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     }
 
 @router.get("/")
-def get_orders(category: str, lat: float, lon: float, db: Session = Depends(get_db)):
-
-    # 1) 카테고리 맞는 주문(또는 가게) 먼저 조회
+def get_orders(
+    category: str,
+    lat: float | None = None,
+    lon: float | None = None,
+    db: Session = Depends(get_db)
+):
+    # 1) 카테고리 맞는 주문 중 pending 상태만 조회
     orders = (
         db.query(models.Order)
         .join(models.Store)
         .filter(models.Store.category == category)
-        .filter(models.Order.status == "pending")  # pending 상태만 조회
+        .filter(models.Order.status == "pending")
         .all()
     )
 
-    # 2) 거리 필터링
-    result = []
-    for order in orders:
-        store = order.store  # Order -> FK -> Store
+    # 2) 위치 정보가 있으면 거리 필터링 적용
+    if lat is not None and lon is not None:
+        result = []
+        for order in orders:
+            store = order.store
+            d = distance(lat, lon, store.latitude, store.longitude)
+            if d <= 300:  # 300m 이하
+                result.append(order)
+        return result
 
-        d = distance(lat, lon, store.latitude, store.longitude)
-
-        if d <= 300:   # 300m 이하
-            result.append(order)
-
-    return result
+    # 위치 정보 없으면 모든 주문 반환
+    return orders
 
 @router.get("/{order_id}")
 def get_order_detail(order_id: int, db: Session = Depends(get_db)):
@@ -187,7 +192,7 @@ def get_order_detail(order_id: int, db: Session = Depends(get_db)):
     }
 
 @router.delete("/{order_id}")
-def delete_order(order_id: int, user_id: str, db: Session = Depends(get_db)):
+def delete_order(order_id: int, user_id: int, db: Session = Depends(get_db)):
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")

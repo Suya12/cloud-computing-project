@@ -11,184 +11,120 @@ export default function Co_order_create() {
     const category = searchParams.get('category');
     const { user } = useAuth();
 
+    // 데이터 상태
     const [store, setStore] = useState(null);
     const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cartItems, setCartItems] = useState([]);
 
+    // 폼 상태
     const [address, setAddress] = useState('');
     const [lat, setLat] = useState(null);
     const [lng, setLng] = useState(null);
     const [eatType, setEatType] = useState('share');
     const [selectedMenus, setSelectedMenus] = useState([]);
 
-    const mapRef = useRef(null);
+    // 지도 관련 ref
+    const mapContainerRef = useRef(null);
+    const mapInstanceRef = useRef(null);
     const markerRef = useRef(null);
     const geocoderRef = useRef(null);
     const placesRef = useRef(null);
-    const [mapReady, setMapReady] = useState(false);
+    const [mapLoaded, setMapLoaded] = useState(false);
 
-    // 장바구니 조회 함수
+    // 장바구니 조회
     const fetchCart = async () => {
-        if (user?.id) {
-            try {
-                const cartRes = await cartAPI.getCart(user.id);
-                setCartItems(cartRes.data || []);
-            } catch (error) {
-                console.error('Failed to fetch cart:', error);
-            }
+        if (!user?.id) return;
+        try {
+            const res = await cartAPI.getCart(user.id);
+            setCartItems(res.data || []);
+        } catch (err) {
+            console.error('장바구니 조회 실패:', err);
         }
     };
 
+    // 가게/메뉴 데이터 로드
     useEffect(() => {
-        const fetchData = async () => {
+        const loadData = async () => {
             if (!storeId) {
                 setLoading(false);
                 return;
             }
             try {
-                // 가게 정보 가져오기
-                const storeRes = await storesAPI.getStoreById(storeId);
+                const [storeRes, menuRes] = await Promise.all([
+                    storesAPI.getStoreById(storeId),
+                    storesAPI.getMenus(storeId)
+                ]);
                 setStore(storeRes.data[0]);
-
-                // 메뉴 가져오기
-                const menuRes = await storesAPI.getMenus(storeId);
-                setMenus(menuRes.data);
-
-                // 장바구니 가져오기
+                setMenus(menuRes.data || []);
                 await fetchCart();
-            } catch (error) {
-                console.error('Failed to fetch store data:', error);
+            } catch (err) {
+                console.error('데이터 로드 실패:', err);
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchData();
+        loadData();
     }, [storeId, user]);
 
     // 카카오맵 초기화
     useEffect(() => {
         if (loading) return;
+        if (!mapContainerRef.current) return;
+        if (mapInstanceRef.current) return; // 이미 초기화됨
 
-        const initMap = () => {
-            const container = document.getElementById('map');
-            if (!container) return;
+        const initializeMap = () => {
+            try {
+                const container = mapContainerRef.current;
+                const options = {
+                    center: new window.kakao.maps.LatLng(35.8468, 127.1297), // 전주시
+                    level: 3
+                };
 
-            const options = {
-                center: new window.kakao.maps.LatLng(37.5665, 126.9780), // 서울 시청
-                level: 3
-            };
-            const map = new window.kakao.maps.Map(container, options);
-            mapRef.current = map;
+                const map = new window.kakao.maps.Map(container, options);
+                mapInstanceRef.current = map;
 
-            const geocoder = new window.kakao.maps.services.Geocoder();
-            geocoderRef.current = geocoder;
+                // Geocoder, Places 초기화
+                geocoderRef.current = new window.kakao.maps.services.Geocoder();
+                placesRef.current = new window.kakao.maps.services.Places();
 
-            const places = new window.kakao.maps.services.Places();
-            placesRef.current = places;
+                // 지도 클릭 이벤트
+                window.kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
+                    const latlng = mouseEvent.latLng;
+                    placeMarker(latlng.getLat(), latlng.getLng());
 
-            setMapReady(true);
-
-            // 지도 클릭 이벤트
-            window.kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
-                const latlng = mouseEvent.latLng;
-
-                // 기존 마커 제거
-                if (markerRef.current) {
-                    markerRef.current.setMap(null);
-                }
-
-                // 새 마커 생성
-                const marker = new window.kakao.maps.Marker({
-                    position: latlng
+                    // 좌표 -> 주소 변환
+                    geocoderRef.current.coord2Address(
+                        latlng.getLng(),
+                        latlng.getLat(),
+                        (result, status) => {
+                            if (status === window.kakao.maps.services.Status.OK) {
+                                setAddress(result[0].address.address_name);
+                            }
+                        }
+                    );
                 });
-                marker.setMap(map);
-                markerRef.current = marker;
 
-                // 좌표 저장
-                setLat(latlng.getLat());
-                setLng(latlng.getLng());
-
-                // 좌표 → 주소 변환
-                geocoder.coord2Address(latlng.getLng(), latlng.getLat(), (result, status) => {
-                    if (status === window.kakao.maps.services.Status.OK) {
-                        const addr = result[0].address.address_name;
-                        setAddress(addr);
-                    }
-                });
-            });
+                setMapLoaded(true);
+                console.log('카카오맵 초기화 완료');
+            } catch (err) {
+                console.error('카카오맵 초기화 실패:', err);
+            }
         };
 
         // 카카오맵 SDK 로드 확인
         if (window.kakao && window.kakao.maps) {
-            window.kakao.maps.load(initMap);
+            window.kakao.maps.load(initializeMap);
+        } else {
+            console.error('카카오맵 SDK가 로드되지 않았습니다.');
         }
     }, [loading]);
 
-    const handleMenuToggle = (menuId) => {
-        // 이미 장바구니에 있는 메뉴는 선택 불가
-        if (cartItems.some(item => item.menu_id === menuId)) {
-            return;
-        }
-        setSelectedMenus(prev =>
-            prev.includes(menuId)
-                ? prev.filter(id => id !== menuId)
-                : [...prev, menuId]
-        );
-    };
+    // 마커 배치 함수
+    const placeMarker = (latitude, longitude) => {
+        if (!mapInstanceRef.current) return;
 
-    const handleRemoveFromCart = async (menuId) => {
-        try {
-            await cartAPI.removeItem(user.id, menuId);
-            await fetchCart();
-        } catch (error) {
-            console.error('Failed to remove item:', error);
-            alert('장바구니에서 삭제하는데 실패했습니다.');
-        }
-    };
-
-    const handleCreateOrder = async () => {
-        if (!address.trim()) {
-            alert('배달 받을 위치를 입력해주세요.');
-            return;
-        }
-
-        // 장바구니에 있거나 새로 선택한 메뉴가 없으면 에러
-        if (selectedMenus.length === 0 && cartItems.length === 0) {
-            alert('최소 1개 이상의 메뉴를 선택해주세요.');
-            return;
-        }
-
-        try {
-            // 1. 장바구니에 선택한 메뉴 추가
-            for (const menuId of selectedMenus) {
-                await cartAPI.addItem(user.id, storeId, menuId);
-            }
-
-            // 2. 주문 생성 (백엔드에서 장바구니 비움)
-            const splitType = eatType === 'share';
-            const response = await ordersAPI.createOrder(user.id, address, splitType, lat, lng);
-
-            // 3. 프론트엔드 상태 초기화
-            setCartItems([]);
-            setSelectedMenus([]);
-
-            alert('공동 주문이 생성되었습니다!');
-            navigate(`/deliver_process?order_id=${response.data.order_id}`);
-        } catch (error) {
-            console.error('Failed to create order:', error);
-            alert(error.response?.data?.detail || '주문 생성에 실패했습니다.');
-        }
-    };
-
-    const handleBack = () => {
-        navigate(-1);
-    };
-
-    // 마커 설정 및 지도 이동 헬퍼 함수
-    const setMarkerAndMove = (lat, lng, addressName) => {
-        const coords = new window.kakao.maps.LatLng(lat, lng);
+        const position = new window.kakao.maps.LatLng(latitude, longitude);
 
         // 기존 마커 제거
         if (markerRef.current) {
@@ -196,61 +132,106 @@ export default function Co_order_create() {
         }
 
         // 새 마커 생성
-        const marker = new window.kakao.maps.Marker({
-            position: coords
-        });
-        marker.setMap(mapRef.current);
+        const marker = new window.kakao.maps.Marker({ position });
+        marker.setMap(mapInstanceRef.current);
         markerRef.current = marker;
 
         // 지도 중심 이동
-        mapRef.current.setCenter(coords);
+        mapInstanceRef.current.setCenter(position);
 
         // 좌표 저장
-        setLat(lat);
-        setLng(lng);
-
-        // 주소 업데이트
-        setAddress(addressName);
+        setLat(latitude);
+        setLng(longitude);
     };
 
-    // 주소/장소 검색 함수
-    const handleAddressSearch = () => {
+    // 주소 검색
+    const handleSearch = () => {
         if (!address.trim()) {
-            alert('검색할 주소 또는 장소명을 입력해주세요.');
+            alert('주소를 입력해주세요.');
+            return;
+        }
+        if (!mapLoaded || !geocoderRef.current) {
+            alert('지도가 로드되지 않았습니다.');
             return;
         }
 
-        if (!mapReady || !geocoderRef.current || !mapRef.current || !placesRef.current) {
-            alert('지도가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
-            return;
-        }
-
-        // 1. 먼저 주소 검색 시도
+        // 주소 검색 시도
         geocoderRef.current.addressSearch(address, (result, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
-                // 주소 검색 성공
-                setMarkerAndMove(
-                    parseFloat(result[0].y),
-                    parseFloat(result[0].x),
-                    result[0].address_name
-                );
+                const y = parseFloat(result[0].y);
+                const x = parseFloat(result[0].x);
+                placeMarker(y, x);
+                setAddress(result[0].address_name);
             } else {
-                // 2. 주소 검색 실패 시 장소명 검색 시도
-                placesRef.current.keywordSearch(address, (placeResult, placeStatus) => {
-                    if (placeStatus === window.kakao.maps.services.Status.OK && placeResult.length > 0) {
-                        // 장소 검색 성공 - 첫 번째 결과 사용
-                        const place = placeResult[0];
-                        setMarkerAndMove(
-                            parseFloat(place.y),
-                            parseFloat(place.x),
-                            place.address_name || place.place_name
-                        );
+                // 장소명 검색 시도
+                placesRef.current.keywordSearch(address, (places, placeStatus) => {
+                    if (placeStatus === window.kakao.maps.services.Status.OK && places.length > 0) {
+                        const place = places[0];
+                        placeMarker(parseFloat(place.y), parseFloat(place.x));
+                        setAddress(place.address_name || place.place_name);
                     } else {
-                        alert('주소 또는 장소를 찾을 수 없습니다.');
+                        alert('검색 결과가 없습니다.');
                     }
                 });
             }
         });
+    };
+
+    // 메뉴 토글
+    const handleMenuToggle = (menuId) => {
+        if (cartItems.some(item => item.menu_id === menuId)) return;
+        setSelectedMenus(prev =>
+            prev.includes(menuId)
+                ? prev.filter(id => id !== menuId)
+                : [...prev, menuId]
+        );
+    };
+
+    // 장바구니에서 삭제
+    const handleRemoveFromCart = async (menuId) => {
+        try {
+            await cartAPI.removeItem(user.id, menuId);
+            await fetchCart();
+        } catch (err) {
+            console.error('삭제 실패:', err);
+            alert('삭제에 실패했습니다.');
+        }
+    };
+
+    // 주문 생성
+    const handleCreateOrder = async () => {
+        if (!address.trim()) {
+            alert('배달 위치를 입력해주세요.');
+            return;
+        }
+        if (lat === null || lng === null) {
+            alert('지도에서 위치를 선택하거나 주소를 검색해주세요.');
+            return;
+        }
+        if (selectedMenus.length === 0 && cartItems.length === 0) {
+            alert('메뉴를 선택해주세요.');
+            return;
+        }
+
+        try {
+            // 선택한 메뉴 장바구니에 추가
+            for (const menuId of selectedMenus) {
+                await cartAPI.addItem(user.id, storeId, menuId);
+            }
+
+            // 주문 생성
+            const splitType = eatType === 'share';
+            const res = await ordersAPI.createOrder(user.id, address, splitType, lat, lng);
+
+            setCartItems([]);
+            setSelectedMenus([]);
+
+            alert('공동 주문이 생성되었습니다!');
+            navigate(`/deliver_process?order_id=${res.data.order_id}`);
+        } catch (err) {
+            console.error('주문 생성 실패:', err);
+            alert(err.response?.data?.detail || '주문 생성에 실패했습니다.');
+        }
     };
 
     if (loading) {
@@ -264,10 +245,11 @@ export default function Co_order_create() {
     return (
         <div className="order-box">
             <div className="header-row">
-                <span className="back-btn" onClick={handleBack}>&lt;</span>
+                <span className="back-btn" onClick={() => navigate(-1)}>&lt;</span>
                 <h2 className="title">공동 주문 생성</h2>
             </div>
 
+            {/* 가게 정보 */}
             <div className="info-box">
                 <div className="row">
                     <span>가게</span>
@@ -287,33 +269,40 @@ export default function Co_order_create() {
                 </div>
             </div>
 
+            {/* 배달 위치 */}
             <label className="label">배달 받을 위치</label>
-            <div id="map" className="map-container"></div>
+            <div
+                ref={mapContainerRef}
+                id="map"
+                className="map-container"
+                style={{ width: '100%', height: '200px' }}
+            />
             <div className="address-search-row">
                 <input
                     type="text"
                     className="input-field address-input"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddressSearch()}
-                    placeholder="주소를 입력하고 검색하거나 지도를 클릭하세요"
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    placeholder="주소 입력 후 검색 또는 지도 클릭"
                 />
                 <button
                     type="button"
                     className="search-btn"
-                    onClick={handleAddressSearch}
-                    disabled={!mapReady}
+                    onClick={handleSearch}
+                    disabled={!mapLoaded}
                 >
-                    {mapReady ? '검색' : '로딩...'}
+                    {mapLoaded ? '검색' : '로딩...'}
                 </button>
             </div>
 
+            {/* 먹기 방식 */}
             <label className="label">함께 먹기 방식</label>
             <div className="radio-group">
                 <label>
                     <input
                         type="radio"
-                        name="type"
+                        name="eatType"
                         checked={eatType === 'share'}
                         onChange={() => setEatType('share')}
                     /> 나눠먹기
@@ -321,13 +310,14 @@ export default function Co_order_create() {
                 <label>
                     <input
                         type="radio"
-                        name="type"
+                        name="eatType"
                         checked={eatType === 'individual'}
                         onChange={() => setEatType('individual')}
                     /> 각자 먹기
                 </label>
             </div>
 
+            {/* 현재 장바구니 */}
             {cartItems.length > 0 && (
                 <>
                     <label className="label">현재 장바구니</label>
@@ -336,7 +326,7 @@ export default function Co_order_create() {
                             <div key={item.menu_id} className="cart-item">
                                 <div>
                                     <div className="menu-name">{item.menu_name}</div>
-                                    <div className="menu-price">{item.menu_price?.toLocaleString()}원</div>
+                                    <div className="menu-price">{item.price?.toLocaleString()}원</div>
                                 </div>
                                 <button
                                     className="delete-btn"
@@ -350,17 +340,18 @@ export default function Co_order_create() {
                 </>
             )}
 
+            {/* 메뉴 선택 */}
             <label className="label">메뉴 추가 선택</label>
             <div className="menu-list">
                 {menus.length > 0 ? (
                     menus.map(menu => {
-                        const isInCart = cartItems.some(item => item.menu_id === menu.id);
+                        const inCart = cartItems.some(item => item.menu_id === menu.id);
                         return (
-                            <div key={menu.id} className={`menu-item ${isInCart ? 'in-cart' : ''}`}>
+                            <div key={menu.id} className={`menu-item ${inCart ? 'in-cart' : ''}`}>
                                 <div>
                                     <div className="menu-name">
                                         {menu.name}
-                                        {isInCart && <span className="in-cart-badge">장바구니에 있음</span>}
+                                        {inCart && <span className="in-cart-badge">장바구니</span>}
                                     </div>
                                     <div className="menu-price">{menu.price?.toLocaleString()}원</div>
                                 </div>
@@ -369,7 +360,7 @@ export default function Co_order_create() {
                                     className="menu-check"
                                     checked={selectedMenus.includes(menu.id)}
                                     onChange={() => handleMenuToggle(menu.id)}
-                                    disabled={isInCart}
+                                    disabled={inCart}
                                 />
                             </div>
                         );

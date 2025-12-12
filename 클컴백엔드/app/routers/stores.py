@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import SessionLocal
 from .. import models
+import re
 
 router = APIRouter(prefix="/stores", tags=["stores"])
 
@@ -24,6 +25,8 @@ def get_stores(store_id: int | None = None, category: str | None = None, db: Ses
             "name": store.name,
             "category": store.category,
             "location": store.location,
+            "latitude": store.latitude,
+            "longitude": store.longitude,
             "minimum_price": store.minimum_price,
             "delivery_tip": store.delivery_tip
         }]
@@ -33,17 +36,16 @@ def get_stores(store_id: int | None = None, category: str | None = None, db: Ses
         if not stores:
             return []
 
-        result = []
-        for store in stores:
-            result.append({
-                "id": store.id,
-                "name": store.name,
-                "category": store.category,
-                "location": store.location,
-                "minimum_price": store.minimum_price,
-                "delivery_tip": store.delivery_tip
-            })
-        return result
+        return [{
+            "id": store.id,
+            "name": store.name,
+            "category": store.category,
+            "location": store.location,
+            "latitude": store.latitude,
+            "longitude": store.longitude,
+            "minimum_price": store.minimum_price,
+            "delivery_tip": store.delivery_tip
+        } for store in stores]
 
     else:
         raise HTTPException(status_code=400, detail="Either store_id or category must be provided.")
@@ -51,12 +53,37 @@ def get_stores(store_id: int | None = None, category: str | None = None, db: Ses
 @router.get("/{store_id}/menus")
 def get_menu(store_id: int, db: Session = Depends(get_db)):
     menus = db.query(models.Menu).filter(models.Menu.store_id == store_id).all()
-    result = []
-    for menu in menus:
-        result.append({
-            "store_id": menu.store_id,
-            "id": menu.id,
-            "name": menu.name,
-            "price": menu.price,
-        })
-    return result
+    return [{
+        "store_id": menu.store_id,
+        "id": menu.id,
+        "name": menu.name,
+        "price": menu.price,
+    } for menu in menus]
+
+def extract_city(address: str):
+    """주소에서 시(市) 이름을 추출합니다."""
+    match = re.search(r'(\S+시)', address)
+    return match.group(1) if match else None
+
+@router.get("/by-city")
+def get_stores_by_city(user_address: str, db: Session = Depends(get_db)):
+    """사용자 주소 기반으로 같은 도시의 가게들을 조회합니다."""
+    city = extract_city(user_address)
+    if not city:
+        return []
+
+    stores = (
+        db.query(models.Store)
+        .filter(models.Store.location.like(f"%{city}%"))
+        .all()
+    )
+    return [{
+        "id": store.id,
+        "name": store.name,
+        "category": store.category,
+        "location": store.location,
+        "latitude": store.latitude,
+        "longitude": store.longitude,
+        "minimum_price": store.minimum_price,
+        "delivery_tip": store.delivery_tip
+    } for store in stores]

@@ -11,8 +11,8 @@ class OrderCreate(BaseModel):
     creator_id: int
     delivery_location: str
     detailed_location: str | None = None
-    delivery_lat: float  # 추가
-    delivery_lng: float # 추가
+    delivery_lat: float | None = None  # 지도에서 선택한 위도 (없으면 None)
+    delivery_lng: float | None = None  # 지도에서 선택한 경도 (없으면 None)
     split_type: bool  # true: 나눠먹기, false: 따로먹기
     # minimum_price는 Store 기준으로 서버에서 처리 가능
 
@@ -22,7 +22,7 @@ class OrderItemOut(BaseModel):
     price: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class OrderOut(BaseModel):
     id: int
@@ -30,8 +30,9 @@ class OrderOut(BaseModel):
     creator_id: int
     store_id: int
     delivery_location: str
-    delivery_lat: float  # 추가
-    delivery_lng: float # 추가
+    detailed_location: str | None = None
+    delivery_lat: float | None = None
+    delivery_lng: float | None = None
     split_type: bool
     owner_paid_amount: int
     items: List[OrderItemOut]
@@ -39,7 +40,7 @@ class OrderOut(BaseModel):
     expires_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 사용자 모델
 class UserCreate(BaseModel):
@@ -55,7 +56,7 @@ class UserOut(BaseModel):
     longitude: float | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 주문 매칭 모델
 class MatchRequest(BaseModel):
