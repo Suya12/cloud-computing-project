@@ -1,18 +1,16 @@
 # auth/google_auth.py
 
+import os
 import requests    # 구글 api 호출
-from fastapi import APIRouter, HTTPException, Depends 
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import RedirectResponse
+from dotenv import load_dotenv
 from .users import find_user_by_email, create_user_record
 from ..utils.jwt_utils import create_jwt
 from sqlalchemy.orm import Session
 from ..database import SessionLocal
 
-# 프론트엔드 -> 구글에서 로그인 -> 코드 받아서 백엔드에서 처리?
-
-
-## aws에서 실행 할 예정 -> 주소부분은 바꿀수 있음 테스트는 해보긴 해야함
-
+load_dotenv()
 
 router = APIRouter(prefix="/auth/google")
 
@@ -23,15 +21,12 @@ def get_db():
     finally:
         db.close()
 
-GOOGLE_CLIENT_ID = "51211712016-n6hn3hjv9dhl9ljptfp17ihq1slalfq9.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
-
-# 로그인 완료 후 구글이 백엔드로 보내는 URL     --> 유비콘으로 실행 시 127.0.0.1:8000 
-REDIRECT_URI = "http://delivery-1536434919.us-east-1.elb.amazonaws.com/auth/google/callback"
-
-# 로그인 성공 후 JWT를 가지고 프론트로 보내줄 URL (React Vite 개발서버)
-FRONT_REDIRECT = "https://d23dn2tm74qiqa.cloudfront.net/category"
-FRONT_LOGIN = "https://d23dn2tm74qiqa.cloudfront.net/login"
+# 환경변수에서 민감 정보 로드
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+FRONT_REDIRECT = os.getenv("FRONT_REDIRECT")
+FRONT_LOGIN = os.getenv("FRONT_LOGIN")
 
 
 @router.get("/login")   
