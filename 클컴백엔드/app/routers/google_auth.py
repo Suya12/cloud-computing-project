@@ -27,11 +27,11 @@ GOOGLE_CLIENT_ID = "51211712016-n6hn3hjv9dhl9ljptfp17ihq1slalfq9.apps.googleuser
 GOOGLE_CLIENT_SECRET = "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"
 
 # 로그인 완료 후 구글이 백엔드로 보내는 URL     --> 유비콘으로 실행 시 127.0.0.1:8000 
-REDIRECT_URI = "http://hw-bhu-bucket-static.s3-website-us-east-1.amazonaws.com/auth/google/callback"
+REDIRECT_URI = "https://d23dn2tm74qiqa.cloudfront.net/login/auth/google/callback"
 
 # 로그인 성공 후 JWT를 가지고 프론트로 보내줄 URL (React Vite 개발서버)
-FRONT_REDIRECT = "http://hw-bhu-bucket-static.s3-website-us-east-1.amazonaws.com/category"
-FRONT_LOGIN = "http://hw-bhu-bucket-static.s3-website-us-east-1.amazonaws.com/login"
+FRONT_REDIRECT = "https://d23dn2tm74qiqa.cloudfront.net/category"
+FRONT_LOGIN = "https://d23dn2tm74qiqa.cloudfront.net/login"
 
 
 @router.get("/login")   
