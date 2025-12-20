@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://delivery-1536434919.us-east-1.elb.amazonaws.com';
+const API_BASE_URL = 'https://d23dn2tm74qiqa.cloudfront.net';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
