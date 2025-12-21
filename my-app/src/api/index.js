@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://d23dn2tm74qiqa.cloudfront.net';
+// 로컬 테스트용
+const API_BASE_URL = 'http://localhost:8000';
+// AWS 배포용
+// const API_BASE_URL = 'https://d23dn2tm74qiqa.cloudfront.net';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -57,7 +60,13 @@ export const ordersAPI = {
       delivery_lat: lat,
       delivery_lng: lng
     }),
-  getOrdersByCategory: (category) => api.get(`/orders/?category=${category}`),
+  getOrdersByCategory: (category, lat = null, lon = null) => {
+    let url = `/orders/?category=${category}`;
+    if (lat !== null && lon !== null) {
+      url += `&lat=${lat}&lon=${lon}`;
+    }
+    return api.get(url);
+  },
   getOrderDetail: (orderId) => api.get(`/orders/${orderId}`),
   deleteOrder: (orderId, userId) => api.delete(`/orders/${orderId}?user_id=${userId}`),
   getMyOrders: (userId) => api.get(`/orders/my/${userId}`),

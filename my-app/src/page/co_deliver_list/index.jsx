@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { ordersAPI, storesAPI } from '../../api';
 import './style.css';
 
@@ -7,6 +8,7 @@ export default function Co_deliver_list() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const category = searchParams.get('category');
+    const { user } = useAuth();
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,7 +20,10 @@ export default function Co_deliver_list() {
                 return;
             }
             try {
-                const response = await ordersAPI.getOrdersByCategory(category);
+                // 사용자 위치 정보가 있으면 함께 전달 (300m 이내 필터링)
+                const lat = user?.latitude || null;
+                const lon = user?.longitude || null;
+                const response = await ordersAPI.getOrdersByCategory(category, lat, lon);
                 // 주문 데이터에 가게 정보 추가
                 const ordersWithStore = await Promise.all(
                     response.data.map(async (order) => {
@@ -42,7 +47,7 @@ export default function Co_deliver_list() {
         };
 
         fetchOrders();
-    }, [category]);
+    }, [category, user]);
 
     const handleOrderClick = (order) => {
         // 주문 클릭 시 메뉴 선택/결제 페이지로 이동
