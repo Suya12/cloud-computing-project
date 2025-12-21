@@ -221,13 +221,31 @@ def delete_order(order_id: int, user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/my/{user_id}")
 def get_my_orders(user_id: int, db: Session = Depends(get_db)):
-    orders = db.query(models.Order).filter(
+    # 내가 생성하거나 소유한 주문
+    my_orders = db.query(models.Order).filter(
         ((models.Order.creator_id == user_id) | (models.Order.owner_id == user_id)) &
         (models.Order.status.in_(["pending", "matched"]))
     ).all()
 
+    # 내가 참여한 주문 (OrderItem에 내 user_id가 있는 주문)
+    participated_order_ids = db.query(models.OrderItem.order_id).filter(
+        models.OrderItem.user_id == user_id
+    ).distinct().all()
+    participated_order_ids = [oid[0] for oid in participated_order_ids]
+
+    participated_orders = db.query(models.Order).filter(
+        models.Order.id.in_(participated_order_ids),
+        models.Order.status.in_(["pending", "matched"])
+    ).all()
+
+    # 중복 제거하며 합치기
+    order_dict = {order.id: order for order in my_orders}
+    for order in participated_orders:
+        if order.id not in order_dict:
+            order_dict[order.id] = order
+
     result = []
-    for order in orders:
+    for order in order_dict.values():
         store = db.query(models.Store).filter(models.Store.id == order.store_id).first()
         result.append({
             "id": order.id,
