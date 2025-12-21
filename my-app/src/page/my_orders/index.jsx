@@ -120,7 +120,7 @@ export default function MyOrders() {
                                                 <span className="status-icon">✔</span>
                                                 <span className="status-text">매칭 완료</span>
                                             </div>
-                                        ) : remaining && (
+                                        ) : remaining && !remaining.expired && (
                                             <div className={`remaining-time ${remaining.urgent ? 'urgent' : ''}`}>
                                                 <span className="time-text">
                                                     남은 시간 {remaining.text}

@@ -85,8 +85,8 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         delivery_lng=lng,
         split_type=order.split_type,
         owner_paid_amount=int(owner_pay),
-        created_at=datetime.now(),
-        expires_at=datetime.now() + timedelta(minutes=30)
+        created_at=datetime.now(seoul_tz),
+        expires_at=datetime.now(seoul_tz) + timedelta(minutes=30)
     )
     db.add(new_order)
     db.commit()
