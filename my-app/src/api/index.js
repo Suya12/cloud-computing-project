@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 // 로컬 테스트용
-const API_BASE_URL = 'http://localhost:8000';
+// const API_BASE_URL = 'http://localhost:8000';
 // AWS 배포용
-// const API_BASE_URL = 'https://d23dn2tm74qiqa.cloudfront.net';
+const API_BASE_URL = 'https://d23dn2tm74qiqa.cloudfront.net';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

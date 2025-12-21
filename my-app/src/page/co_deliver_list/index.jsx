@@ -8,13 +8,17 @@ export default function Co_deliver_list() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const category = searchParams.get('category');
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchOrders = async () => {
+            // user 정보 로딩 중이면 대기
+            if (authLoading) {
+                return;
+            }
             if (!category) {
                 setLoading(false);
                 return;
@@ -47,7 +51,7 @@ export default function Co_deliver_list() {
         };
 
         fetchOrders();
-    }, [category, user]);
+    }, [category, user, authLoading]);
 
     const handleOrderClick = (order) => {
         // 주문 클릭 시 메뉴 선택/결제 페이지로 이동

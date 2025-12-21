@@ -32,7 +32,6 @@ export default function MyOrders() {
         fetchOrders();
     }, [user]);
 
-    // 1초마다 현재 시간 업데이트 (남은 시간 표시용)
     useEffect(() => {
         const timer = setInterval(() => {
             setNow(new Date());
@@ -40,25 +39,18 @@ export default function MyOrders() {
         return () => clearInterval(timer);
     }, []);
 
-    // 남은 시간 계산
     const getRemainingTime = (expiresAt) => {
         if (!expiresAt) return null;
-        const expireDate = new Date(expiresAt);
-        const diff = expireDate - now;
+        const diff = new Date(expiresAt) - now;
+        if (diff <= 0) return { expired: true, text: '만료' };
 
-        if (diff <= 0) return { text: '만료됨', expired: true };
-
-        const minutes = Math.floor(diff / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-
-        if (minutes > 0) {
-            return { text: `${minutes}분 ${seconds}초`, expired: false };
-        }
-        return { text: `${seconds}초`, expired: false, urgent: true };
-    };
-
-    const handleBack = () => {
-        navigate('/category');
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        return {
+            expired: false,
+            urgent: m === 0,
+            text: m > 0 ? `${m}분 ${s}초` : `${s}초`
+        };
     };
 
     const handleOrderClick = (orderId) => {
@@ -67,27 +59,21 @@ export default function MyOrders() {
 
     const handleDeleteOrder = async (e, orderId) => {
         e.stopPropagation();
-        if (window.confirm('이 주문을 삭제하시겠습니까? 결제 금액이 환불됩니다.')) {
-            try {
-                await ordersAPI.deleteOrder(orderId, user.id);
-                setOrders(orders.filter(order => order.id !== orderId));
-                alert('주문이 삭제되었습니다.');
-            } catch (error) {
-                console.error('Failed to delete order:', error);
-                alert(error.response?.data?.detail || '주문 삭제에 실패했습니다.');
-            }
+        if (!window.confirm('이 주문을 삭제하시겠습니까?')) return;
+
+        try {
+            await ordersAPI.deleteOrder(orderId, user.id);
+            setOrders(orders.filter(o => o.id !== orderId));
+        } catch {
+            alert('주문 삭제 실패');
         }
     };
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleString('ko-KR', {
-            month: 'short',
-            day: 'numeric',
+    const formatDate = (dateString) =>
+        new Date(dateString).toLocaleString('ko-KR', {
             hour: '2-digit',
             minute: '2-digit'
         });
-    };
 
     if (loading || loadingOrders) {
         return <div className="my-orders-container">로딩 중...</div>;
@@ -96,14 +82,14 @@ export default function MyOrders() {
     return (
         <div className="my-orders-container">
             <div className="header-row">
-                <span className="back-btn" onClick={handleBack}>&lt;</span>
+                <span className="back-btn" onClick={() => navigate('/category')}>&lt;</span>
                 <h2 className="title">내 주문 목록</h2>
             </div>
 
             {orders.length === 0 ? (
                 <div className="empty-state">
                     <p>참여 중인 주문이 없습니다.</p>
-                    <button className="go-category-btn" onClick={handleBack}>
+                    <button className="go-category-btn" onClick={() => navigate('/category')}>
                         공동 주문 찾아보기
                     </button>
                 </div>
@@ -112,51 +98,65 @@ export default function MyOrders() {
                     {orders.map(order => {
                         const remaining = getRemainingTime(order.expires_at);
                         const isMatched = order.status === 'matched';
+
                         return (
                             <div
                                 key={order.id}
                                 className={`order-card ${isMatched ? 'matched' : ''} ${remaining?.expired ? 'expired' : ''}`}
                                 onClick={() => handleOrderClick(order.id)}
                             >
-                                <div className="order-header">
-                                    <div className="order-header-top">
-                                        <span className="store-name">{order.store_name}</span>
-                                        <span className="order-category">{order.store_category}</span>
+                                <div className="order-top">
+                                    <div className="order-main-info">
+                                        <div className="store-name">{order.store_name}</div>
+                                        <div className="order-meta">
+                                            <span className="order-category">{order.store_category}</span>
+                                            <span className="order-location">{order.delivery_location}</span>
+                                        </div>
                                     </div>
-                                    <span className="delivery-location">{order.delivery_location}</span>
-                                </div>
-                                {isMatched ? (
-                                    <div className="matched-status">
-                                        <span className="status-icon">✓</span>
-                                        <span className="status-text">매칭 완료 - 배달 진행 중</span>
-                                    </div>
-                                ) : remaining && (
-                                    <div className={`remaining-time ${remaining.expired ? 'expired' : ''} ${remaining.urgent ? 'urgent' : ''}`}>
-                                        <span className="time-icon">⏱</span>
-                                        <span className="time-text">
-                                            {remaining.expired ? '매칭 시간 만료' : `남은 시간: ${remaining.text}`}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="order-details">
-                                    <div className="detail-row">
-                                        <span className="label">결제 금액</span>
-                                        <span className="value">{order.owner_paid_amount?.toLocaleString()}원</span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="label">주문 방식</span>
-                                        <span className="value">{order.split_type ? '나눠먹기' : '각자먹기'}</span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="label">주문 시간</span>
-                                        <span className="value">{formatDate(order.created_at)}</span>
+
+                                    <div className="order-status">
+                                        {isMatched ? (
+                                            <div className="matched-status">
+                                                <span className="status-icon">✔</span>
+                                                <span className="status-text">매칭 완료</span>
+                                            </div>
+                                        ) : remaining && (
+                                            <div className={`remaining-time ${remaining.urgent ? 'urgent' : ''}`}>
+                                                <span className="time-text">
+                                                    남은 시간 {remaining.text}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="order-footer">
-                                    {order.creator_id === user.id && (
-                                        <span className="creator-badge">내가 생성</span>
-                                    )}
-                                    {order.creator_id === user.id && (
+
+                                <div className="order-bottom">
+                                    <div className="order-info-grid">
+                                        <div className="info-item">
+                                            <span className="label">결제</span>
+                                            <span className="value">
+                                                {order.owner_paid_amount?.toLocaleString()}원
+                                            </span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="label">방식</span>
+                                            <span className="value">
+                                                {order.split_type ? '나눠먹기' : '각자먹기'}
+                                            </span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="label">시간</span>
+                                            <span className="value">{formatDate(order.created_at)}</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="label">내 주문</span>
+                                            <span className="value">
+                                                {order.creator_id === user?.id ? 'O' : 'X'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {order.creator_id === user?.id && (
                                         <button
                                             className="delete-btn"
                                             onClick={(e) => handleDeleteOrder(e, order.id)}

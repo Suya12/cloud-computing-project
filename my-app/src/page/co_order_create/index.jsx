@@ -264,8 +264,7 @@ export default function Co_order_create() {
             alert('지도에서 위치를 선택하거나 주소를 검색해주세요.');
             return;
         }
-        // 각자먹기일 때만 메뉴 선택 필수
-        if (eatType === 'individual' && selectedMenus.length === 0 && cartItems.length === 0) {
+        if (selectedMenus.length === 0 && cartItems.length === 0) {
             alert('메뉴를 선택해주세요.');
             return;
         }
@@ -404,45 +403,40 @@ export default function Co_order_create() {
                 </>
             )}
 
-            {/* 메뉴 선택 - 각자먹기일 때만 표시 */}
-            {eatType === 'individual' && (
-                <>
-                    <label className="label">메뉴 추가 선택</label>
-                    <div className="menu-list">
-                        {menus.length > 0 ? (
-                            menus.map(menu => {
-                                const inCart = cartItems.some(item => item.menu_id === menu.id);
-                                return (
-                                    <div key={menu.id} className={`menu-item ${inCart ? 'in-cart' : ''}`}>
-                                        <div>
-                                            <div className="menu-name">
-                                                {menu.name}
-                                                {inCart && <span className="in-cart-badge">장바구니</span>}
-                                            </div>
-                                            <div className="menu-price">{menu.price?.toLocaleString()}원</div>
-                                        </div>
-                                        <input
-                                            type="checkbox"
-                                            className="menu-check"
-                                            checked={selectedMenus.includes(menu.id)}
-                                            onChange={() => handleMenuToggle(menu.id)}
-                                            disabled={inCart}
-                                        />
+            {/* 메뉴 선택 */}
+            <label className="label">메뉴 선택</label>
+            <div className="menu-list">
+                {menus.length > 0 ? (
+                    menus.map(menu => {
+                        const inCart = cartItems.some(item => item.menu_id === menu.id);
+                        return (
+                            <div key={menu.id} className={`menu-item ${inCart ? 'in-cart' : ''}`}>
+                                <div>
+                                    <div className="menu-name">
+                                        {menu.name}
+                                        {inCart && <span className="in-cart-badge">장바구니</span>}
                                     </div>
-                                );
-                            })
-                        ) : (
-                            <p>메뉴가 없습니다.</p>
-                        )}
-                    </div>
-                </>
-            )}
+                                    <div className="menu-price">{menu.price?.toLocaleString()}원</div>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    className="menu-check"
+                                    checked={selectedMenus.includes(menu.id)}
+                                    onChange={() => handleMenuToggle(menu.id)}
+                                    disabled={inCart}
+                                />
+                            </div>
+                        );
+                    })
+                ) : (
+                    <p>메뉴가 없습니다.</p>
+                )}
+            </div>
 
             {/* 나눠먹기 안내 */}
             {eatType === 'share' && (
                 <div className="share-info">
-                    <p>나눠먹기는 참여자들이 하나의 메뉴를 함께 주문합니다.</p>
-                    <p>주문 생성 후 참여자들이 모이면 메뉴가 결정됩니다.</p>
+                    <p>나눠먹기: 참여자와 선택한 메뉴를 함께 나눠 먹습니다.</p>
                 </div>
             )}
 

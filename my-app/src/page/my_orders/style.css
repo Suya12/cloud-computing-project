@@ -7,66 +7,15 @@
     padding: 20px;
 }
 
-.header-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.back-btn {
-    font-size: 24px;
-    cursor: pointer;
-    padding: 4px 8px;
-}
-
-.title {
-    font-size: 20px;
-    font-weight: bold;
-    margin: 0;
-}
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    text-align: center;
-}
-
-.empty-state p {
-    color: #666;
-    font-size: 16px;
-    margin-bottom: 20px;
-}
-
-.go-category-btn {
-    padding: 12px 24px;
-    background: #1a2744;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.go-category-btn:hover {
-    background: #243352;
-}
-
-.orders-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
+/* 카드 기본 */
 .order-card {
     background: white;
     border-radius: 12px;
-    padding: 16px;
+    padding: 14px 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
 }
@@ -76,164 +25,121 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.order-header {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #eee;
+.order-card.matched {
+    border: 2px solid #16a34a;
 }
 
-.order-header-top {
+/* ===== 상단 영역 ===== */
+.order-top {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.order-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .store-name {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     color: #333;
 }
 
+.order-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
 .order-category {
-    padding: 4px 10px;
     background: #e0f2fe;
     color: #0369a1;
-    border-radius: 12px;
-    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
     font-weight: 600;
+}
+
+.order-location {
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 매칭 상태 */
+.order-status {
     flex-shrink: 0;
 }
 
-.delivery-location {
-    font-size: 13px;
-    color: #666;
-    line-height: 1.4;
-}
-
-.order-details {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.detail-row .label {
-    font-size: 13px;
-    color: #888;
-}
-
-.detail-row .value {
-    font-size: 14px;
-    color: #333;
-    font-weight: 500;
-}
-
-.order-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #eee;
-}
-
-.creator-badge {
-    padding: 6px 12px;
-    background: #dcfce7;
-    color: #16a34a;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.delete-btn {
-    padding: 6px 12px;
-    background: #dc2626;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-
-.delete-btn:hover {
-    background: #b91c1c;
-}
-
-/* 남은 시간 표시 */
-.remaining-time {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: #e0f2fe;
-    border-radius: 8px;
-    margin-bottom: 12px;
-}
-
-.remaining-time .time-icon {
-    font-size: 14px;
-}
-
-.remaining-time .time-text {
-    font-size: 13px;
-    font-weight: 600;
-    color: #0369a1;
-}
-
-.remaining-time.urgent {
-    background: #fef3c7;
-}
-
-.remaining-time.urgent .time-text {
-    color: #d97706;
-}
-
-.remaining-time.expired {
-    background: #fee2e2;
-}
-
-.remaining-time.expired .time-text {
-    color: #dc2626;
-}
-
-.order-card.expired {
-    opacity: 0.7;
-}
-
-/* 매칭 완료 상태 */
 .matched-status {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 4px 10px;
     background: #dcfce7;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    border-radius: 10px;
 }
 
-.matched-status .status-icon {
-    font-size: 14px;
+.status-icon {
+    font-size: 13px;
     color: #16a34a;
 }
 
-.matched-status .status-text {
-    font-size: 13px;
+.status-text {
+    font-size: 12px;
     font-weight: 600;
     color: #16a34a;
 }
 
-.order-card.matched {
-    border: 2px solid #16a34a;
+/* ===== 하단 영역 ===== */
+.order-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* 정보 Grid */
+.order-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 6px 14px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.info-item .label {
+    color: #888;
+}
+
+.info-item .value {
+    font-weight: 600;
+    color: #333;
+}
+
+/* 삭제 버튼 */
+.delete-btn {
+    padding: 6px 12px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #fecaca;
 }
