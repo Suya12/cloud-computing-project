@@ -86,7 +86,7 @@ class Menu(Base):
 class MenuList(Base):
     __tablename__ = "menu_list"
 
-    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     menu_id = Column(Integer, ForeignKey("menu.id"), primary_key=True)
     price = Column(Integer, nullable=False)
 
