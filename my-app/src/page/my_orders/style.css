@@ -78,11 +78,17 @@
 
 .order-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
     margin-bottom: 12px;
     padding-bottom: 12px;
     border-bottom: 1px solid #eee;
+}
+
+.order-header-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .store-name {
@@ -98,6 +104,13 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
+    flex-shrink: 0;
+}
+
+.delivery-location {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
 }
 
 .order-details {
@@ -125,26 +138,27 @@
 
 .order-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: 8px;
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #eee;
 }
 
 .creator-badge {
-    padding: 4px 10px;
+    padding: 6px 12px;
     background: #dcfce7;
     color: #16a34a;
-    border-radius: 12px;
+    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
 }
 
 .delete-btn {
     padding: 6px 12px;
-    background: #fee2e2;
-    color: #dc2626;
+    background: #dc2626;
+    color: white;
     border: none;
     border-radius: 6px;
     font-size: 12px;
@@ -154,7 +168,7 @@
 }
 
 .delete-btn:hover {
-    background: #fecaca;
+    background: #b91c1c;
 }
 
 /* 남은 시간 표시 */

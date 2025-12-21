@@ -119,8 +119,11 @@ export default function MyOrders() {
                                 onClick={() => handleOrderClick(order.id)}
                             >
                                 <div className="order-header">
-                                    <span className="store-name">{order.store_name}</span>
-                                    <span className="order-category">{order.store_category}</span>
+                                    <div className="order-header-top">
+                                        <span className="store-name">{order.store_name}</span>
+                                        <span className="order-category">{order.store_category}</span>
+                                    </div>
+                                    <span className="delivery-location">{order.delivery_location}</span>
                                 </div>
                                 {isMatched ? (
                                     <div className="matched-status">
@@ -136,10 +139,6 @@ export default function MyOrders() {
                                     </div>
                                 )}
                                 <div className="order-details">
-                                    <div className="detail-row">
-                                        <span className="label">배달 위치</span>
-                                        <span className="value">{order.delivery_location}</span>
-                                    </div>
                                     <div className="detail-row">
                                         <span className="label">결제 금액</span>
                                         <span className="value">{order.owner_paid_amount?.toLocaleString()}원</span>
