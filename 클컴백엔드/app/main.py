@@ -36,3 +36,7 @@ app.include_router(notifier.router)
 async def startup_event():
     print("Joint Order Service 서버 시작")
     print("WebSocket: /ws/user/{user_id}")
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
