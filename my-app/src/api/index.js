@@ -40,6 +40,7 @@ export const storesAPI = {
   getStoresByCategory: (category) => api.get(`/stores/?category=${category}`),
   getStoreById: (storeId) => api.get(`/stores/?store_id=${storeId}`),
   getMenus: (storeId) => api.get(`/stores/${storeId}/menus`),
+  getStoresByCity: (userAddress) => api.get(`/stores/by-city?user_address=${encodeURIComponent(userAddress)}`),
 };
 
 // Cart API (query parameters)

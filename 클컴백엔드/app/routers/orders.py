@@ -142,14 +142,14 @@ def get_orders(
         .all()
     )
 
-    # 2) 위치 정보가 있으면 거리 필터링 적용
+    # 2) 위치 정보가 있으면 거리 필터링 적용 (배달 위치 기준)
     if lat is not None and lon is not None:
         result = []
         for order in orders:
-            store = order.store
-            d = distance(lat, lon, store.latitude, store.longitude)
-            if d <= 300:  # 300m 이하
-                result.append(order)
+            if order.delivery_lat is not None and order.delivery_lng is not None:
+                d = distance(lat, lon, order.delivery_lat, order.delivery_lng)
+                if d <= 300:  # 300m 이하
+                    result.append(order)
         return result
 
     # 위치 정보 없으면 모든 주문 반환

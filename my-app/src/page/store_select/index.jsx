@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { storesAPI } from '../../api';
 import './style.css';
 
@@ -7,6 +8,7 @@ export default function Store_select() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const category = searchParams.get('category');
+    const { user } = useAuth();
 
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,7 +21,16 @@ export default function Store_select() {
             }
             try {
                 const response = await storesAPI.getStoresByCategory(category);
-                setStores(response.data);
+                let storeList = response.data;
+
+                // 사용자 주소가 있으면 같은 도시의 가게만 필터링
+                if (user?.address) {
+                    const cityResponse = await storesAPI.getStoresByCity(user.address);
+                    const cityStoreIds = cityResponse.data.map(s => s.id);
+                    storeList = storeList.filter(s => cityStoreIds.includes(s.id));
+                }
+
+                setStores(storeList);
             } catch (error) {
                 console.error('Failed to fetch stores:', error);
             } finally {
@@ -28,7 +39,7 @@ export default function Store_select() {
         };
 
         fetchStores();
-    }, [category]);
+    }, [category, user]);
 
     const handleStoreClick = (store) => {
         // 가게 선택 시 공동 주문 생성 페이지로 이동

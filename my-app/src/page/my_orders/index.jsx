@@ -9,7 +9,6 @@ export default function MyOrders() {
     const { user, loading } = useAuth();
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
-    const [now, setNow] = useState(new Date());
 
     useEffect(() => {
         if (!loading && !user) {
@@ -31,27 +30,6 @@ export default function MyOrders() {
         };
         fetchOrders();
     }, [user]);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setNow(new Date());
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const getRemainingTime = (expiresAt) => {
-        if (!expiresAt) return null;
-        const diff = new Date(expiresAt) - now;
-        if (diff <= 0) return { expired: true, text: '만료' };
-
-        const m = Math.floor(diff / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        return {
-            expired: false,
-            urgent: m === 0,
-            text: m > 0 ? `${m}분 ${s}초` : `${s}초`
-        };
-    };
 
     const handleOrderClick = (orderId) => {
         navigate(`/deliver_process?order_id=${orderId}`);
@@ -96,13 +74,12 @@ export default function MyOrders() {
             ) : (
                 <div className="orders-list">
                     {orders.map(order => {
-                        const remaining = getRemainingTime(order.expires_at);
                         const isMatched = order.status === 'matched';
 
                         return (
                             <div
                                 key={order.id}
-                                className={`order-card ${isMatched ? 'matched' : ''} ${remaining?.expired ? 'expired' : ''}`}
+                                className={`order-card ${isMatched ? 'matched' : ''}`}
                                 onClick={() => handleOrderClick(order.id)}
                             >
                                 <div className="order-top">
@@ -114,20 +91,14 @@ export default function MyOrders() {
                                         </div>
                                     </div>
 
-                                    <div className="order-status">
-                                        {isMatched ? (
+                                    {isMatched && (
+                                        <div className="order-status">
                                             <div className="matched-status">
                                                 <span className="status-icon">✔</span>
                                                 <span className="status-text">매칭 완료</span>
                                             </div>
-                                        ) : remaining && !remaining.expired && (
-                                            <div className={`remaining-time ${remaining.urgent ? 'urgent' : ''}`}>
-                                                <span className="time-text">
-                                                    남은 시간 {remaining.text}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="order-bottom">
