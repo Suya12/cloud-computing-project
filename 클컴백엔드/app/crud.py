@@ -94,6 +94,8 @@ def match_order(db: Session, order_id: int, matched_user_id: int):
 
     # --- Order 상태 변경 (삭제하지 않음) ---
     order.status = "matched"
+    # 매칭 완료 시 expires_at을 None으로 설정하여 타임아웃 방지
+    order.expires_at = None
 
     db.commit()
     db.refresh(matched_user)

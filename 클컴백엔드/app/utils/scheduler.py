@@ -22,9 +22,14 @@ async def start_timeout_task(order_id: int, user_id: int, delay_minutes: int = 3
         # 현재 시간
         now = datetime.now(seoul_tz)
 
-        # 이미 만료되었는지 확인
-        if now < order.expires_at:
-            return  # 시간 내에 매칭이 되어 만료가 연기되었거나 정상적으로 처리된 경우
+        # 매칭 완료된 경우 (expires_at이 None) 또는 아직 만료 시간 전인 경우
+        if order.expires_at is None:
+            return  # 매칭 완료됨
+
+        # expires_at이 timezone-naive이므로 now도 naive로 비교
+        now_naive = datetime.now()
+        if now_naive < order.expires_at:
+            return  # 아직 만료 시간 전
 
         # Order가 expire 시간까지 매칭되지 않은 경우 → 자동 취소 처리
         message = f"요청 #{order_id}이 30분 동안 매칭되지 않아 자동 취소되었습니다."

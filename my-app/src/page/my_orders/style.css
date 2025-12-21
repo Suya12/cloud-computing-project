@@ -197,3 +197,29 @@
 .order-card.expired {
     opacity: 0.7;
 }
+
+/* 매칭 완료 상태 */
+.matched-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #dcfce7;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.matched-status .status-icon {
+    font-size: 14px;
+    color: #16a34a;
+}
+
+.matched-status .status-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.order-card.matched {
+    border: 2px solid #16a34a;
+}

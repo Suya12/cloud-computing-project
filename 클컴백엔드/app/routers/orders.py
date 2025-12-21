@@ -188,6 +188,7 @@ def get_order_detail(order_id: int, db: Session = Depends(get_db)):
         "created_at": order.created_at,
         "expires_at": order.expires_at,
         "status": order.status,
+        "delivery_delay": store.delivery_delay if store else 30,
         "items": items_with_menu
     }
 
@@ -222,7 +223,7 @@ def delete_order(order_id: int, user_id: int, db: Session = Depends(get_db)):
 def get_my_orders(user_id: int, db: Session = Depends(get_db)):
     orders = db.query(models.Order).filter(
         ((models.Order.creator_id == user_id) | (models.Order.owner_id == user_id)) &
-        (models.Order.status == "pending")
+        (models.Order.status.in_(["pending", "matched"]))
     ).all()
 
     result = []

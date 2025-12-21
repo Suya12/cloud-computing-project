@@ -7,16 +7,29 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 사용자 정보 API로 조회
-  const fetchUserInfo = async (email) => {
-    try {
-      const response = await usersAPI.getUserByEmail(email);
-      if (response.data) {
-        setUser(response.data);
+  // 사용자 정보 API로 조회 (재시도 포함)
+  const fetchUserInfo = async (email, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        console.log(`Fetching user info for: ${email} (attempt ${i + 1})`);
+        const response = await usersAPI.getUserByEmail(email);
+        console.log('User info response:', response.data);
+        if (response.data) {
+          setUser(response.data);
+          return true;
+        }
+        // null 응답이면 잠시 대기 후 재시도
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info:', error);
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
-    } catch (error) {
-      console.error('Failed to fetch user info:', error);
     }
+    return false;
   };
 
   useEffect(() => {

@@ -43,19 +43,11 @@ export default function Category() {
         }
     }, [user, loading, navigate]);
 
-    // 크레딧 조회
+    // 크레딧은 user.credit에서 직접 가져옴
     useEffect(() => {
-        const fetchCredit = async () => {
-            if (user?.id) {
-                try {
-                    const response = await usersAPI.getCredit(user.id);
-                    setCredit(response.data.credit);
-                } catch (error) {
-                    console.error('Failed to fetch credit:', error);
-                }
-            }
-        };
-        fetchCredit();
+        if (user?.credit !== undefined) {
+            setCredit(user.credit);
+        }
     }, [user]);
 
     // 저장된 주소 불러오기
@@ -79,8 +71,8 @@ export default function Category() {
         if (amount && !isNaN(amount) && parseInt(amount) > 0) {
             try {
                 await usersAPI.addCredit(user.id, parseInt(amount));
-                const response = await usersAPI.getCredit(user.id);
-                setCredit(response.data.credit);
+                // AuthContext 사용자 정보 새로고침 (credit도 포함됨)
+                await refreshUser();
                 alert(`${parseInt(amount).toLocaleString()}원이 충전되었습니다!`);
             } catch (error) {
                 console.error('Failed to add credit:', error);

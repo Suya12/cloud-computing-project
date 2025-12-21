@@ -11,6 +11,7 @@ export default function Deliver_process() {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [remainingTime, setRemainingTime] = useState(30);
+    const [deliveryTime, setDeliveryTime] = useState(30); // 배달 예상 시간 (분)
     const [isMatched, setIsMatched] = useState(false);
 
     useEffect(() => {
@@ -23,16 +24,27 @@ export default function Deliver_process() {
                 const response = await ordersAPI.getOrderDetail(orderId);
                 setOrder(response.data);
 
-                // 매칭 여부 확인: items에서 서로 다른 user_id가 있으면 매칭 완료
+                // 매칭 여부 확인: status가 matched이거나 items에 서로 다른 user_id가 있으면 매칭 완료
+                const isStatusMatched = response.data.status === 'matched';
                 const userIds = [...new Set(response.data.items?.map(item => item.user_id) || [])];
-                setIsMatched(userIds.length > 1);
+                setIsMatched(isStatusMatched || userIds.length > 1);
 
-                // 남은 시간 계산
+                // 매칭 대기 중: expires_at으로 남은 시간 계산
                 if (response.data.expires_at) {
                     const expiresAt = new Date(response.data.expires_at);
                     const now = new Date();
                     const diffMinutes = Math.max(0, Math.floor((expiresAt - now) / 60000));
                     setRemainingTime(diffMinutes);
+                }
+
+                // 매칭 완료: created_at + store.delivery_delay 기준으로 배달 예상 시간 계산
+                if (isStatusMatched && response.data.created_at) {
+                    const createdAt = new Date(response.data.created_at);
+                    const delayMinutes = response.data.delivery_delay || 30; // 백엔드에서 받은 배달 시간
+                    const deliveryEndTime = new Date(createdAt.getTime() + delayMinutes * 60000);
+                    const now = new Date();
+                    const diffMinutes = Math.max(0, Math.floor((deliveryEndTime - now) / 60000));
+                    setDeliveryTime(diffMinutes);
                 }
             } catch (error) {
                 console.error('Failed to fetch order:', error);
@@ -131,7 +143,7 @@ export default function Deliver_process() {
             <h2 className="title">주문 현황</h2>
 
             <div className="time-section">
-                <span className="arrival-time">{remainingTime}분 후</span>
+                <span className="arrival-time">{deliveryTime > 0 ? `${deliveryTime}분 후` : '곧 도착'}</span>
                 <span className="arrival-label">도착예정</span>
             </div>
 

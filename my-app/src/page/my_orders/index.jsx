@@ -111,17 +111,23 @@ export default function MyOrders() {
                 <div className="orders-list">
                     {orders.map(order => {
                         const remaining = getRemainingTime(order.expires_at);
+                        const isMatched = order.status === 'matched';
                         return (
                             <div
                                 key={order.id}
-                                className={`order-card ${remaining?.expired ? 'expired' : ''}`}
+                                className={`order-card ${isMatched ? 'matched' : ''} ${remaining?.expired ? 'expired' : ''}`}
                                 onClick={() => handleOrderClick(order.id)}
                             >
                                 <div className="order-header">
                                     <span className="store-name">{order.store_name}</span>
                                     <span className="order-category">{order.store_category}</span>
                                 </div>
-                                {remaining && (
+                                {isMatched ? (
+                                    <div className="matched-status">
+                                        <span className="status-icon">✓</span>
+                                        <span className="status-text">매칭 완료 - 배달 진행 중</span>
+                                    </div>
+                                ) : remaining && (
                                     <div className={`remaining-time ${remaining.expired ? 'expired' : ''} ${remaining.urgent ? 'urgent' : ''}`}>
                                         <span className="time-icon">⏱</span>
                                         <span className="time-text">
